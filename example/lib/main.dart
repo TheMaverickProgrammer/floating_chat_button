@@ -7,7 +7,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -33,90 +33,75 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int tabBarIndex = 0;
-  GlobalKey<FloatingChatButtonState> _page2Key = GlobalKey();
+  final GlobalKey<FloatingChatButtonState> _page2Key = GlobalKey();
 
   Future<void> _showBottomSheet(BuildContext bContext) async {
     return showModalBottomSheet(
-        enableDrag: false,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        context: bContext,
-        builder: (context) => DismissibleBottomSheetView(
-          childView: Container(
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      context: bContext,
+      builder: (context) => DismissibleBottomSheetView(
+        childView: Container(
             width: double.infinity,
             color: Colors.white,
             child: const Center(
               child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text("Imagine this is a chat UI", style: TextStyle(fontSize: 30, color: Colors.blue)),
-                  ),
-            )
-            ),
-          ),
-        );
+                padding: EdgeInsets.all(20.0),
+                child: Text("Imagine this is a chat UI",
+                    style: TextStyle(fontSize: 30, color: Colors.blue)),
+              ),
+            )),
+      ),
+    );
   }
 
   Widget _getPage(int index) {
     switch (index) {
       case 0:
         return FloatingChatButton(
-          background: Container(
+          background: ListView.builder(
+            itemCount: 100,
             padding: const EdgeInsets.all(4),
-            child: SingleChildScrollView(
-              child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [for (var i = 0; i < 100; i += 1) i]
-                      .map((e) => SizedBox(
-                            width: double.infinity,
-                            child: Padding(
-                              padding: const EdgeInsets.all(2.0),
-                              child: Card(
-                                  color: Colors.green,
-                                  child: ListTile(
-                                    title: Text(
-                                        "Random title " + (e + 1).toString(),
-                                        style: const TextStyle(
-                                            fontSize: 20, color: Colors.white)),
-                                    subtitle: Text(
-                                        "Random content " + (e + 1).toString(),
-                                        style: const TextStyle(
-                                            fontSize: 16, color: Colors.white)),
-                                    leading: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (e % 3 == 0)
-                                          const Icon(
-                                            Icons.label,
-                                            color: Colors.white,
-                                          ),
-                                        if (e % 3 == 1)
-                                          const Icon(
-                                            Icons.map,
-                                            color: Colors.white,
-                                          ),
-                                        if (e % 3 == 2)
-                                          const Icon(
-                                            Icons.create_outlined,
-                                            color: Colors.white,
-                                          )
-                                      ],
-                                    ),
-                                    trailing: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: const [
-                                        Icon(
-                                          Icons.arrow_forward_ios,
-                                          color: Colors.white,
-                                        ),
-                                      ],
-                                    ),
-                                  )),
+            itemBuilder: (BuildContext context, int index) {
+              return SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Card(
+                      color: Colors.green,
+                      child: ListTile(
+                        title: Text("Random title ${index + 1}",
+                            style: const TextStyle(
+                                fontSize: 20, color: Colors.white)),
+                        subtitle: Text("Random content ${index + 1}",
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.white)),
+                        leading: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (index % 3 == 0)
+                              const Icon(Icons.label, color: Colors.white),
+                            if (index % 3 == 1)
+                              const Icon(Icons.map, color: Colors.white),
+                            if (index % 3 == 2)
+                              const Icon(Icons.create_outlined,
+                                  color: Colors.white)
+                          ],
+                        ),
+                        trailing: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
                             ),
-                          ))
-                      .toList()),
-            ),
+                          ],
+                        ),
+                      )),
+                ),
+              );
+            },
           ),
           onTap: (_) {
             _showBottomSheet(context);
@@ -194,11 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
             chatIconBackgroundColor: Colors.white,
             chatIconWidget: const Padding(
               padding: EdgeInsets.all(18.0),
-              child: Icon(
-                Icons.flag,
-                color: Colors.red,
-                size: 40,
-              ),
+              child: Icon(Icons.flag, color: Colors.red, size: 40),
             ),
             messageText: "It's 50% of the time!",
             showMessageParameters: ShowMessageParameters(
@@ -212,17 +193,11 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: _getPage(tabBarIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: tabBarIndex,
-        onTap: (index) {
-          setState(() {
-            tabBarIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => tabBarIndex = index),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.pool),

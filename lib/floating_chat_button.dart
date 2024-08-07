@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 
 import 'src/floating_chat_icon.dart';
-import 'package:flutter/material.dart';
-import 'dart:math';
 
 class FloatingChatButton extends StatefulWidget {
   /// The FloatingChatButton can be stacked on top of another view inside its
@@ -79,7 +80,7 @@ class FloatingChatButton extends StatefulWidget {
   /// default resting spaces
   final double chatIconHorizontalOffset;
 
-  FloatingChatButton(
+  const FloatingChatButton(
       {this.background,
       required this.onTap,
       this.shouldPutWidgetInCircle = true,
@@ -103,15 +104,14 @@ class FloatingChatButton extends StatefulWidget {
       this.showMessageParameters,
       this.chatIconVerticalOffset = 30,
       this.chatIconHorizontalOffset = 30,
-      Key? key})
+      super.key})
       : assert(chatIconWidget == null ||
             (chatIconSize == null &&
                 chatIconWidgetHeight == null &&
                 chatIconWidgetWidth == null)),
         assert(messageWidget == null ||
             (messageBackgroundColor == null && messageTextWidget == null)),
-        assert(messageTextWidget == null || (messageTextStyle == null)),
-        super(key: key);
+        assert(messageTextWidget == null || (messageTextStyle == null));
   @override
   FloatingChatButtonState createState() => FloatingChatButtonState();
 }
@@ -251,7 +251,6 @@ class FloatingChatButtonState extends State<FloatingChatButton> {
             right: (isRight) ? widget.chatIconHorizontalOffset : null,
             left: (isRight) ? null : widget.chatIconHorizontalOffset,
             child: Draggable(
-              child: floatingChatIcon,
               feedback: floatingChatIcon,
               childWhenDragging: Container(),
               onDragEnd: (draggableDetails) {
@@ -262,6 +261,7 @@ class FloatingChatButtonState extends State<FloatingChatButton> {
                       (MediaQuery.of(context).size.width) / 2);
                 });
               },
+              child: floatingChatIcon,
             ))
       ]);
     });
