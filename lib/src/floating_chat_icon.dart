@@ -25,7 +25,8 @@ class FloatingChatIcon extends StatelessWidget {
   final double? messageBorderWidth;
   final Color? messageBorderColor;
 
-  FloatingChatIcon({
+  const FloatingChatIcon({
+    super.key,
     this.onTap,
     required this.isTop,
     required this.isRight,
