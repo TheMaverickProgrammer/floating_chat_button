@@ -1,3 +1,7 @@
+## 1.1.0
+
+Update dependencies.
+
 ## 1.0.1
 
 Update formatting to improve pub score.
