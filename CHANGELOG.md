@@ -1,6 +1,7 @@
 ## 1.1.0
 
-Update dependencies.
+- Update dependencies.
+- Added topics and screenshots.
 
 ## 1.0.1
 
