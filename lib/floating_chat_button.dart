@@ -273,6 +273,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
     return isWithinMessageFrequency;
   }
 
+  /// Accumulates parent widget offsets for the [Positioned] widget
   Offset _calcOffsets(List<BuildContext> contexts) {
     return contexts
         .map<Offset>(
@@ -284,7 +285,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
         .fold<Offset>(Offset.zero, (prev, e) => prev + e);
   }
 
-// We need to calculate the drag offset relative to the chatIcon.
+  // We need to calculate the drag offset relative to the chatIcon.
   // This is because all calculations are w.r.t. the chatIcon resting
   // in the 4 possible corners, irrespective of the message widget size.
   // We use the drag stategy to obtain those widgets dimensions as they
