@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
-
 import 'src/floating_chat_icon.dart';
 
 class FloatingChatButton extends StatefulWidget {
@@ -29,6 +29,14 @@ class FloatingChatButton extends StatefulWidget {
   final double? chatIconSize;
   final double? chatIconWidgetHeight;
   final double? chatIconWidgetWidth;
+
+  /// On drag end, animates how the [chatIconWidget] approaches corners.
+  /// If null, default value is [Curves.elasticOut].
+  final Curve? chatIconAnimationCurve;
+
+  /// On drag end, specifies how long the [chatIconWidget] approaches corners.
+  /// If null, default value is 1 second.
+  final Duration? chatIconAnimationDuration;
 
   /// If shouldPutWidgetInCircle is true, this specifies the border colour around
   /// the circle
@@ -92,6 +100,8 @@ class FloatingChatButton extends StatefulWidget {
       this.chatIconWidgetWidth,
       this.chatIconBorderColor = Colors.blue,
       this.chatIconBorderWidth = 4,
+      this.chatIconAnimationCurve,
+      this.chatIconAnimationDuration = const Duration(seconds: 1),
       this.messageWidget,
       this.messageCrossFadeTime,
       this.messageVerticalSpacing = 10,
@@ -116,7 +126,8 @@ class FloatingChatButton extends StatefulWidget {
   FloatingChatButtonState createState() => FloatingChatButtonState();
 }
 
-class FloatingChatButtonState extends State<FloatingChatButton> {
+class FloatingChatButtonState extends State<FloatingChatButton>
+    with TickerProviderStateMixin {
   Widget? messageWidget;
   Widget? messageTextWidget;
   String? messageText;
@@ -124,10 +135,25 @@ class FloatingChatButtonState extends State<FloatingChatButton> {
   bool isRight = true;
   bool isTimeToShowMessage = false;
   Timer? _timer;
+  Offset? _releaseOffset;
+  late final AnimationController _animationController = AnimationController(
+    duration: widget.chatIconAnimationDuration,
+    vsync: this,
+  );
+  late final _tween = Tween(
+    begin: 0.0,
+    end: 1.0,
+  ).animate(
+    CurvedAnimation(
+      parent: _animationController,
+      curve: widget.chatIconAnimationCurve ?? Curves.elasticOut,
+    ),
+  );
 
   @override
   void dispose() {
     _timer?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -245,24 +271,63 @@ class FloatingChatButtonState extends State<FloatingChatButton> {
       );
       return Stack(children: [
         if (widget.background != null) widget.background!,
-        Positioned(
-            bottom: (isTop) ? null : widget.chatIconVerticalOffset,
-            top: (isTop) ? widget.chatIconVerticalOffset : null,
-            right: (isRight) ? widget.chatIconHorizontalOffset : null,
-            left: (isRight) ? null : widget.chatIconHorizontalOffset,
+        AnimatedBuilder(
+            animation: _animationController,
             child: Draggable(
               feedback: floatingChatIcon,
               childWhenDragging: Container(),
+              onDragStarted: () {
+                _animationController.stop();
+              },
               onDragEnd: (draggableDetails) {
                 _setStateIfMounted(() {
-                  isTop = (draggableDetails.offset.dy <
-                      (MediaQuery.of(context).size.height) / 2);
-                  isRight = (draggableDetails.offset.dx >
-                      (MediaQuery.of(context).size.width) / 2);
+                  _releaseOffset = draggableDetails.offset;
+
+                  final double w = MediaQuery.of(context).size.width;
+                  final double h = MediaQuery.of(context).size.height;
+                  isTop = (draggableDetails.offset.dy < h * 0.5);
+                  isRight = (draggableDetails.offset.dx > w * 0.5);
+
+                  if (!isTop) {
+                    _releaseOffset = Offset(
+                      _releaseOffset!.dx,
+                      h - _releaseOffset!.dy,
+                    );
+                  }
+
+                  if (isRight) {
+                    _releaseOffset = Offset(
+                      w - _releaseOffset!.dx,
+                      _releaseOffset!.dy,
+                    );
+                  }
+
+                  _animationController.forward(from: 0.0);
                 });
               },
               child: floatingChatIcon,
-            ))
+            ),
+            builder: (BuildContext context, Widget? child) {
+              if (child == null) return const SizedBox.shrink();
+              final double dt =
+                  _animationController.isAnimating ? _tween.value : 1.0;
+              final Offset w = Offset(
+                widget.chatIconHorizontalOffset,
+                widget.chatIconVerticalOffset,
+              );
+              final Offset s = switch (_releaseOffset) {
+                null => w,
+                Offset r => Offset(lerpDouble(r.dx, w.dx, dt) ?? w.dx,
+                    lerpDouble(r.dy, w.dy, dt) ?? w.dx),
+              };
+              return Positioned(
+                bottom: (isTop) ? null : s.dy,
+                top: (isTop) ? s.dy : null,
+                right: (isRight) ? s.dx : null,
+                left: (isRight) ? null : s.dx,
+                child: child,
+              );
+            }),
       ]);
     });
     // return
