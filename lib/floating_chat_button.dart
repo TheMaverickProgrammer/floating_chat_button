@@ -88,34 +88,38 @@ class FloatingChatButton extends StatefulWidget {
   /// default resting spaces
   final double chatIconHorizontalOffset;
 
-  const FloatingChatButton(
-      {this.background,
-      required this.onTap,
-      this.shouldPutWidgetInCircle = true,
-      this.chatIconWidget,
-      this.chatIconColor,
-      this.chatIconBackgroundColor,
-      this.chatIconSize,
-      this.chatIconWidgetHeight,
-      this.chatIconWidgetWidth,
-      this.chatIconBorderColor = Colors.blue,
-      this.chatIconBorderWidth = 4,
-      this.chatIconAnimationCurve,
-      this.chatIconAnimationDuration = const Duration(seconds: 1),
-      this.messageWidget,
-      this.messageCrossFadeTime,
-      this.messageVerticalSpacing = 10,
-      this.messageBackgroundColor,
-      this.messageTextStyle,
-      this.messageTextWidget,
-      this.messageText,
-      this.messageBorderWidth,
-      this.messageBorderColor,
-      this.showMessageParameters,
-      this.chatIconVerticalOffset = 30,
-      this.chatIconHorizontalOffset = 30,
-      super.key})
-      : assert(chatIconWidget == null ||
+  /// [showChatButton] will determine if the chat button should be returned
+  final bool showChatButton;
+
+  const FloatingChatButton({
+    this.background,
+    required this.onTap,
+    this.shouldPutWidgetInCircle = true,
+    this.chatIconWidget,
+    this.chatIconColor,
+    this.chatIconBackgroundColor,
+    this.chatIconSize,
+    this.chatIconWidgetHeight,
+    this.chatIconWidgetWidth,
+    this.chatIconBorderColor = Colors.blue,
+    this.chatIconBorderWidth = 4,
+    this.chatIconAnimationCurve,
+    this.chatIconAnimationDuration = const Duration(seconds: 1),
+    this.messageWidget,
+    this.messageCrossFadeTime,
+    this.messageVerticalSpacing = 10,
+    this.messageBackgroundColor,
+    this.messageTextStyle,
+    this.messageTextWidget,
+    this.messageText,
+    this.messageBorderWidth,
+    this.messageBorderColor,
+    this.showMessageParameters,
+    this.chatIconVerticalOffset = 30,
+    this.chatIconHorizontalOffset = 30,
+    this.showChatButton = true,
+    super.key,
+  })  : assert(chatIconWidget == null ||
             (chatIconSize == null &&
                 chatIconWidgetHeight == null &&
                 chatIconWidgetWidth == null)),
@@ -338,97 +342,100 @@ class FloatingChatButtonState extends State<FloatingChatButton>
         return Stack(
           children: [
             if (widget.background != null) widget.background!,
-            AnimatedBuilder(
-              animation: _animationController,
-              child: Draggable(
-                key: chatIconKey,
-                feedback: floatingChatIcon,
-                childWhenDragging: Container(),
-                dragAnchorStrategy: _dragStrategy,
-                onDragStarted: () {
-                  _animationController.stop();
-                },
-                onDragEnd: (draggableDetails) {
-                  _setStateIfMounted(
-                    () {
-                      final Size mqSize = MediaQuery.of(context).size;
-                      final double w = mqSize.width;
-                      final double h = mqSize.height;
-
-                      final Offset dragOffset = draggableDetails.offset;
-
-                      // Calculate the midpoint wrt the visible location of the
-                      // icon chat widget, irrespective of any message widgets
-                      final Offset crossOver = switch (_chatIconDragStart) {
-                        final Offset start => dragOffset + start,
-                        _ => dragOffset
-                      };
-
-                      isTop = (crossOver.dy < h * 0.5);
-                      isRight = (crossOver.dx > w * 0.5);
-
-                      // Total offset of all "parent" contexts halved
-                      final p = _calcOffsets([context, layoutContext])
-                          .scale(0.5, 0.5);
-                      _releaseOffset = dragOffset - p;
-
-                      // Update adjusted drag position relative to the widget
-                      final Offset r = switch ((
-                        _chatIconSize,
-                        _chatIconWithMessageSize
-                      )) {
-                        (final Offset c, final Offset m) => (m - c) + c,
-                        _ => Offset.zero
-                      };
-
-                      if (!isTop) {
-                        _releaseOffset = Offset(
-                          _releaseOffset!.dx,
-                          (h - p.dy) - (_releaseOffset!.dy + p.dy + r.dy),
-                        );
-                      }
-
-                      if (isRight) {
-                        _releaseOffset = Offset(
-                          (w - p.dx) - (_releaseOffset!.dx + p.dx + r.dx),
-                          _releaseOffset!.dy,
-                        );
-                      }
-
-                      _animationController.forward(from: 0.0);
+            switch (widget.showChatButton) {
+              true => AnimatedBuilder(
+                  animation: _animationController,
+                  child: Draggable(
+                    key: chatIconKey,
+                    feedback: floatingChatIcon,
+                    childWhenDragging: Container(),
+                    dragAnchorStrategy: _dragStrategy,
+                    onDragStarted: () {
+                      _animationController.stop();
                     },
-                  );
-                },
-                child: floatingChatIcon,
-              ),
-              builder: (BuildContext context, Widget? child) {
-                if (child == null) return const SizedBox.shrink();
-                final double dt =
-                    _animationController.isAnimating ? _tween.value : 1.0;
-                final Offset w = Offset(
-                  widget.chatIconHorizontalOffset,
-                  widget.chatIconVerticalOffset,
-                );
-                final Offset s = switch (_releaseOffset) {
-                  null => w,
-                  Offset r => Offset(lerpDouble(r.dx, w.dx, dt) ?? w.dx,
-                      lerpDouble(r.dy, w.dy, dt) ?? w.dx),
-                };
-                return Positioned(
-                  bottom: (isTop) ? null : s.dy,
-                  top: (isTop) ? s.dy : null,
-                  right: (isRight) ? s.dx : null,
-                  left: (isRight) ? null : s.dx,
-                  child: child,
-                );
-              },
-            ),
+                    onDragEnd: (draggableDetails) {
+                      _setStateIfMounted(
+                        () {
+                          final Size mqSize = MediaQuery.of(context).size;
+                          final double w = mqSize.width;
+                          final double h = mqSize.height;
+
+                          final Offset dragOffset = draggableDetails.offset;
+
+                          // Calculate the midpoint wrt the visible location of the
+                          // icon chat widget, irrespective of any message widgets
+                          final Offset crossOver = switch (_chatIconDragStart) {
+                            final Offset start => dragOffset + start,
+                            _ => dragOffset
+                          };
+
+                          isTop = (crossOver.dy < h * 0.5);
+                          isRight = (crossOver.dx > w * 0.5);
+
+                          // Total offset of all "parent" contexts halved
+                          final p = _calcOffsets([context, layoutContext])
+                              .scale(0.5, 0.5);
+                          _releaseOffset = dragOffset - p;
+
+                          // Update adjusted drag position relative to the widget
+                          final Offset r = switch ((
+                            _chatIconSize,
+                            _chatIconWithMessageSize
+                          )) {
+                            (final Offset c, final Offset m) => (m - c) + c,
+                            _ => Offset.zero
+                          };
+
+                          if (!isTop) {
+                            _releaseOffset = Offset(
+                              _releaseOffset!.dx,
+                              (h - p.dy) - (_releaseOffset!.dy + p.dy + r.dy),
+                            );
+                          }
+
+                          if (isRight) {
+                            _releaseOffset = Offset(
+                              (w - p.dx) - (_releaseOffset!.dx + p.dx + r.dx),
+                              _releaseOffset!.dy,
+                            );
+                          }
+
+                          _animationController.forward(from: 0.0);
+                        },
+                      );
+                    },
+                    child: floatingChatIcon,
+                  ),
+                  builder: (BuildContext context, Widget? child) {
+                    if (child == null) return const SizedBox.shrink();
+                    final double dt =
+                        _animationController.isAnimating ? _tween.value : 1.0;
+                    final Offset w = Offset(
+                      widget.chatIconHorizontalOffset,
+                      widget.chatIconVerticalOffset,
+                    );
+                    final Offset s = switch (_releaseOffset) {
+                      null => w,
+                      Offset r => Offset(lerpDouble(r.dx, w.dx, dt) ?? w.dx,
+                          lerpDouble(r.dy, w.dy, dt) ?? w.dx),
+                    };
+                    return Positioned(
+                      bottom: (isTop) ? null : s.dy,
+                      top: (isTop) ? s.dy : null,
+                      right: (isRight) ? s.dx : null,
+                      left: (isRight) ? null : s.dx,
+                      child: child,
+                    );
+                  },
+                ),
+              false => const SizedBox.shrink()
+            }
           ],
         );
       },
     );
-    // return
   }
+  // return
 }
 
 /// Parameters of when to show the message if it shouldn't be shown at all times
