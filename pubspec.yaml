@@ -1,7 +1,7 @@
 name: floating_chat_button
 description: A floating button which can be dragged around the screen and can display messages to the user
 version: 1.1.0
-repository: https://github.com/ninjaman255/floating_chat_button/tree/tempFix/remove_repository_from_pubspec
+repository: https://github.com/ninjaman255/floating_chat_button/tree/
 topics: 
   - button
   - widget
