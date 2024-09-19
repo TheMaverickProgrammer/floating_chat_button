@@ -127,7 +127,7 @@ class FloatingChatButton extends StatefulWidget {
 }
 
 class FloatingChatButtonState extends State<FloatingChatButton>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   Widget? messageWidget;
   Widget? messageTextWidget;
   String? messageText;
