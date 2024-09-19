@@ -1,11 +1,9 @@
 name: floating_chat_button
 description: A floating button which can be dragged around the screen and can display messages to the user
 version: 1.1.0
-repository: https://github.com/cu-apps/floating_chat_button
 topics: 
   - button
   - widget
-  - ui
 screenshots:
   - description: "This screenshot shows the default appearance of the FloatingChatButton"
     path: example/example_gifs/floating_chat_button_example_1.gif
@@ -30,7 +28,6 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
-flutter:
 
   # To add assets to your package, add an assets section, like this:
   # assets:
