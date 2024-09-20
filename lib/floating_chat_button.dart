@@ -127,7 +127,7 @@ class FloatingChatButton extends StatefulWidget {
 }
 
 class FloatingChatButtonState extends State<FloatingChatButton>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   Widget? messageWidget;
   Widget? messageTextWidget;
   String? messageText;
@@ -138,10 +138,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
   Offset? _releaseOffset;
 
   // Animate the chat widget movement
-  late final AnimationController _animationController = AnimationController(
-    duration: widget.chatIconAnimationDuration,
-    vsync: this,
-  );
+  late final AnimationController _animationController;
 
   // Tweens the chat widget animation
   late final _tween = Tween(
@@ -254,6 +251,10 @@ class FloatingChatButtonState extends State<FloatingChatButton>
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: widget.chatIconAnimationDuration,
+      vsync: this,
+    );
     messageWidget = widget.messageWidget;
     messageTextWidget = widget.messageTextWidget;
     messageText = widget.messageText;
