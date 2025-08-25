@@ -413,7 +413,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
                 final Offset s = switch (_releaseOffset) {
                   null => w,
                   Offset r => Offset(lerpDouble(r.dx, w.dx, dt) ?? w.dx,
-                      lerpDouble(r.dy, w.dy, dt) ?? w.dx),
+                      lerpDouble(r.dy, w.dy, dt) ?? w.dy),
                 };
                 return Positioned(
                   bottom: (isTop) ? null : s.dy,
