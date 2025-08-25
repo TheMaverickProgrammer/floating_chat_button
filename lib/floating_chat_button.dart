@@ -32,7 +32,7 @@ class FloatingChatButton extends StatefulWidget {
 
   /// On drag end, animates how the [chatIconWidget] approaches corners.
   /// If null, default value is [Curves.elasticOut].
-  final Curve? chatIconAnimationCurve;
+  final Curve chatIconAnimationCurve;
 
   /// On drag end, specifies how long the [chatIconWidget] approaches corners.
   /// If null, default value is 1 second.
@@ -100,7 +100,7 @@ class FloatingChatButton extends StatefulWidget {
       this.chatIconWidgetWidth,
       this.chatIconBorderColor = Colors.blue,
       this.chatIconBorderWidth = 4,
-      this.chatIconAnimationCurve,
+      this.chatIconAnimationCurve = Curves.elasticOut,
       this.chatIconAnimationDuration = const Duration(seconds: 1),
       this.messageWidget,
       this.messageCrossFadeTime,
@@ -147,7 +147,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
   ).animate(
     CurvedAnimation(
       parent: _animationController,
-      curve: widget.chatIconAnimationCurve ?? Curves.elasticOut,
+      curve: widget.chatIconAnimationCurve,
     ),
   );
 
@@ -201,6 +201,64 @@ class FloatingChatButtonState extends State<FloatingChatButton>
         isTimeToShowMessage = false;
       },
     );
+  }
+
+  /// This helper function determines the "cross-over" point
+  /// on the screen based on drag amount stored in [draggableDetails]
+  /// and the centroid of the widget.
+  ///
+  /// The widget centroid is calculated from its parent layouts and
+  /// and offset is applied accounting for the cross-over point so
+  /// that the widget appears to animate smoothly from its release
+  /// point to the destination corner. Without this adjustment,
+  /// the orientation of the widget as it slides to one of the
+  /// corners will be obviously mis-aligned visually and does not
+  /// appear natural.
+  void _calculateReleasePosition(
+    BuildContext layoutContext,
+    DraggableDetails draggableDetails,
+  ) {
+    final Size mqSize = MediaQuery.of(context).size;
+    final double w = mqSize.width;
+    final double h = mqSize.height;
+
+    final Offset dragOffset = draggableDetails.offset;
+
+    // Calculate the midpoint wrt the visible location of the
+    // icon chat widget, irrespective of any message widgets
+    final Offset crossOver = switch (_chatIconDragStart) {
+      final Offset start => dragOffset + start,
+      _ => dragOffset
+    };
+
+    isTop = (crossOver.dy < h * 0.5);
+    isRight = (crossOver.dx > w * 0.5);
+
+    // Total offset of all "parent" contexts halved
+    final p = _calcOffsets([context, layoutContext]).scale(0.5, 0.5);
+    _releaseOffset = dragOffset - p;
+
+    // Update adjusted drag position relative to the widget
+    final Offset r = switch ((_chatIconSize, _chatIconWithMessageSize)) {
+      (final Offset c, final Offset m) => (m - c) + c,
+      _ => Offset.zero
+    };
+
+    if (!isTop) {
+      _releaseOffset = Offset(
+        _releaseOffset!.dx,
+        (h - p.dy) - (_releaseOffset!.dy + p.dy + r.dy),
+      );
+    }
+
+    if (isRight) {
+      _releaseOffset = Offset(
+        (w - p.dx) - (_releaseOffset!.dx + p.dx + r.dx),
+        _releaseOffset!.dy,
+      );
+    }
+
+    _animationController.forward(from: 0.0);
   }
 
   void _scheduleMessageShowing() {
@@ -292,7 +350,7 @@ class FloatingChatButtonState extends State<FloatingChatButton>
   // We use the drag stategy to obtain those widgets dimensions as they
   // are rendered by then.
   Offset _dragStrategy(
-      Draggable<Object> draggable, BuildContext context, Offset position) {
+      Draggable<Object> _, BuildContext context, Offset position) {
     final RenderBox? chatIcon =
         chatIconKey.currentContext?.findRenderObject() as RenderBox?;
     final RenderBox? parent = context.findRenderObject() as RenderBox?;
@@ -351,53 +409,10 @@ class FloatingChatButtonState extends State<FloatingChatButton>
                 },
                 onDragEnd: (draggableDetails) {
                   _setStateIfMounted(
-                    () {
-                      final Size mqSize = MediaQuery.of(context).size;
-                      final double w = mqSize.width;
-                      final double h = mqSize.height;
-
-                      final Offset dragOffset = draggableDetails.offset;
-
-                      // Calculate the midpoint wrt the visible location of the
-                      // icon chat widget, irrespective of any message widgets
-                      final Offset crossOver = switch (_chatIconDragStart) {
-                        final Offset start => dragOffset + start,
-                        _ => dragOffset
-                      };
-
-                      isTop = (crossOver.dy < h * 0.5);
-                      isRight = (crossOver.dx > w * 0.5);
-
-                      // Total offset of all "parent" contexts halved
-                      final p = _calcOffsets([context, layoutContext])
-                          .scale(0.5, 0.5);
-                      _releaseOffset = dragOffset - p;
-
-                      // Update adjusted drag position relative to the widget
-                      final Offset r = switch ((
-                        _chatIconSize,
-                        _chatIconWithMessageSize
-                      )) {
-                        (final Offset c, final Offset m) => (m - c) + c,
-                        _ => Offset.zero
-                      };
-
-                      if (!isTop) {
-                        _releaseOffset = Offset(
-                          _releaseOffset!.dx,
-                          (h - p.dy) - (_releaseOffset!.dy + p.dy + r.dy),
-                        );
-                      }
-
-                      if (isRight) {
-                        _releaseOffset = Offset(
-                          (w - p.dx) - (_releaseOffset!.dx + p.dx + r.dx),
-                          _releaseOffset!.dy,
-                        );
-                      }
-
-                      _animationController.forward(from: 0.0);
-                    },
+                    () => _calculateReleasePosition(
+                      layoutContext,
+                      draggableDetails,
+                    ),
                   );
                 },
                 child: floatingChatIcon,

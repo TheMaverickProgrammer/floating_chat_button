@@ -1,3 +1,6 @@
+## 1.1.1
+- Sleek, responsive, wiggle-on-release animation behavior added.
+
 ## 1.1.0
 
 - Update dependencies.
